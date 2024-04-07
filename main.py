@@ -37,7 +37,8 @@ for i in range(12):
     clahe = cv.createCLAHE(40.0, (12, 12))
     clahe_img = clahe.apply(gray)
     # medb = cv.medianBlur(clahe_img, 3)
-    medb = cv.GaussianBlur(clahe_img, (17, 17), -1, -1)
+    # medb = cv.GaussianBlur(clahe_img, (17, 17), -1, -1)
+    medb = cv.bilateralFilter(clahe_img, 9, 300, 300)
     # adth = cv.adaptiveThreshold(medb, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 7, -10)
 
     cv.imshow("gray", gray)
@@ -46,7 +47,7 @@ for i in range(12):
     # cv.imshow("adth", adth)
 
 
-    edges = cv.Canny(medb, 70, 120)
+    edges = cv.Canny(medb, 140, 150)
 
     cv.imshow("Canny", edges)
 
@@ -59,7 +60,7 @@ for i in range(12):
 
     cv.imshow("Sobel", result)
 
-    sobth = cv.adaptiveThreshold(result, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, -10)
+    sobth = cv.adaptiveThreshold(result, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 21, -12)
 
     cv.imshow("Sobel th", sobth)
 
@@ -72,19 +73,19 @@ for i in range(12):
 
 
     # dil = cv.dilate(bwand, (3, 3), iterations=4)
-    adthcl = cv.morphologyEx(bwand, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_RECT, (3, 3)))
+    bwandcl = cv.morphologyEx(bwand, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_RECT, (3, 3)))
 
 
     # cv.imshow("dil", dil)
 
 
-    contours2, hierarchy2 = cv.findContours(adthcl, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    contours2, hierarchy2 = cv.findContours(bwandcl, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     for ind, _ in enumerate(contours2):
         cona = cv.contourArea(contours2[ind])
         mina = cv.minAreaRect(contours2[ind])
         (width, height) = mina[1]
         rotrec = width * height
-        if cona > 15 and rotrec / cona > 10:
+        if cona > 25 and rotrec / cona > 12 and max(width, height) / min(width, height) > 1.2:
             cv.drawContours(wood, contours2, ind, (255, 0, 0), 1, cv.LINE_AA)
 
 
@@ -97,17 +98,19 @@ for i in range(12):
 
 
     # 绘制各关键步骤图像
-    # cv.imshow("GB{}".format(i + 1), GB)
+    cv.imshow("G-B{}".format(i + 1), G - B)
+    cv.imshow("GB{}".format(i + 1), GB)
+    cv.imshow("cl", cl)
     cv.imshow("wood{}".format(i + 1), wood)
     # 绘制木板角点
     for eachpoint in box:
         cv.circle(img, (int(eachpoint[0]), int(eachpoint[1])), 3, (0, 255, 0), 2)
     # 绘制各关键步骤图像
     cv.imshow("img{}".format(i + 1), img)
-    # cv.imshow("gray{}".format(i + 1), gray)
+    cv.imshow("gray{}".format(i + 1), gray)
     # cv.imshow("gaus{}".format(i + 1), gaus)
     # cv.imshow("adth{}".format(i + 1), adth)
-    cv.imshow("adthcl{}".format(i + 1), adthcl)
+    cv.imshow("bwandcl{}".format(i + 1), bwandcl)
     # cv.imshow("adthop{}".format(i + 1), adthop)
 
     # 保持显示图片 如果按下ESC(ASCII为27)则退出
